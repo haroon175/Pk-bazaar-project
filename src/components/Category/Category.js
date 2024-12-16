@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box, Grid, Paper } from '@mui/material';
-import Hero from '../Hero';
+import { Box, Grid } from '@mui/material';
 
-// Array of categories
+
+
 const categories = [
     { img: 'https://m1.secondhandapp.at/2.0/638efd08afec5103ce0ebe58?height=128&width=128' },
     { img: 'https://m1.secondhandapp.at/2.0/638efda7e8b7f364fd6625c2?height=128&width=128' },
@@ -43,8 +43,8 @@ const Category = () => {
                                     left: 0,
                                     right: 0,
                                     bottom: 0,
-                                    backgroundColor: 'rgba(0, 0, 0, 0.1)', // Adjust color and opacity as needed
-                                    backdropFilter: 'blur(0px)', // Adjust blur level as needed
+                                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                                    backdropFilter: 'blur(0px)', 
                                     zIndex: 1,
                                 }
                             }}

@@ -5,7 +5,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import Product from '../../images/product.png';
 import { useDropzone } from 'react-dropzone';
 
-const CreateProduct = ({ open, onClose, onProductCreated }) => {
+const CreateProduct = ({ open, onClose, onProductCreated, selectedProduct }) => {
   const [productData, setProductData] = useState({ name: '', description: '', price: '', categoryId: '' });
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -13,24 +13,23 @@ const CreateProduct = ({ open, onClose, onProductCreated }) => {
   const [imagePreview, setImagePreview] = useState('');
   const [uploading, setUploading] = useState(false);
 
-  const NGROK_URL = 'https://thank-rug-effort-stop.trycloudflare.com/api';
+  const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
 
-  // Fetch categories on component mount
   useEffect(() => {
     const fetchCategories = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await axios.get(`${NGROK_URL}/v1.0/category/getAllCategory`, {
+        const response = await axios.get(`${NGROK_URL}/v1.0/category/getAllCategory/load`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        if (response.data && Array.isArray(response.data.categories)) {
-          setCategories(response.data.categories);
+        if (response.data.data && Array.isArray(response.data.data)) {
+          setCategories(response.data.data);
         } else {
           setCategories([]);
-          console.error('Unexpected response format:', response.data);
+          console.error('Unexpected response format:', response.data.data);
         }
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -42,6 +41,25 @@ const CreateProduct = ({ open, onClose, onProductCreated }) => {
 
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (selectedProduct) {
+      // Populate fields for updating the product
+      setProductData({
+        name: selectedProduct.name,
+        description: selectedProduct.description,
+        price: selectedProduct.price,
+        categoryId: selectedProduct.categoryId,
+      });
+      setImagePreview(selectedProduct.image || '');
+      setImage(selectedProduct.image || null);
+    } else {
+      // Reset fields for creating a new product
+      setProductData({ name: '', description: '', price: '', categoryId: '' });
+      setImagePreview('');
+      setImage(null);
+    }
+  }, [selectedProduct]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -102,70 +120,66 @@ const CreateProduct = ({ open, onClose, onProductCreated }) => {
       return;
     }
   
-    onClose();
+    onClose(); // Close the modal or form
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No token found in localStorage');
   
       const payload = {
-        name: productData.name,
-        description: productData.description,
+        name: productData.name.trim(),
+        description: productData.description.trim(),
         price,
         categoryId: productData.categoryId,
         image: [image],
       };
   
-      const response = await axios.post(`${NGROK_URL}/v1.0/product/products`, payload, {
+      const url = selectedProduct
+        ? `${NGROK_URL}/v1.0/product/productsUpdate/${selectedProduct.id}`
+        : `${NGROK_URL}/v1.0/product/products`;
+      const method = selectedProduct ? 'put' : 'post';
+  
+      const response = await axios({
+        method,
+        url,
+        data: payload,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
   
-      // Notify success
-      toast.success('Product created successfully!');
+      const responseData = response.data.product || response.data;
   
-      // Update products in local storage
+      toast.success(selectedProduct ? 'Product updated successfully!' : 'Product created successfully!');
+  
+      // Update the local products list in localStorage
       const existingProducts = JSON.parse(localStorage.getItem('products')) || [];
-      const updatedProducts = [...existingProducts, response.data];
+      const updatedProducts = selectedProduct
+        ? existingProducts.map((product) =>
+            product.id === selectedProduct.id ? { ...product, ...responseData } : product
+          )
+        : [...existingProducts, responseData];
       localStorage.setItem('products', JSON.stringify(updatedProducts));
   
-      // Call the callback to notify parent component
-      onProductCreated(response.data);
+      // Callback to update the parent state or UI
+      onProductCreated(responseData);
     } catch (error) {
-      console.error('Failed to create product', error);
-      toast.error('Something went wrong! Failed to create product.');
+      console.error('Failed to save product', error);
+      toast.error('Something went wrong! Failed to save product.');
     }
   };
   
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mb: 2,
-        }}
-      >
-        <Avatar
-          alt="Product Image"
-          src={Product}
-          sx={{ width: 80, height: 80, mb: 1, mt: 2 }}
-        />
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+        <Avatar alt="Product Image" src={Product} sx={{ width: 80, height: 80, mb: 1, mt: 2 }} />
         <Typography
           variant="h6"
           component="h2"
-          sx={{
-            fontWeight: 'bold',
-            fontSize: '1rem',
-            color: '#f85606',
-            textAlign: 'center',
-          }}
+          sx={{ fontWeight: 'bold', fontSize: '1rem', color: '#f85606', textAlign: 'center' }}
         >
-          Create Product
+          {selectedProduct ? 'Update Product' : 'Create Product'}
         </Typography>
       </Box>
 
@@ -195,7 +209,6 @@ const CreateProduct = ({ open, onClose, onProductCreated }) => {
           value={productData.price}
           onChange={handleChange}
         />
-        {/* Dropdown for Categories */}
         <Select
           fullWidth
           value={productData.categoryId}
@@ -213,7 +226,6 @@ const CreateProduct = ({ open, onClose, onProductCreated }) => {
           ))}
         </Select>
 
-        {/* Image Upload Section */}
         <Box
           {...getRootProps()}
           sx={{
@@ -223,15 +235,34 @@ const CreateProduct = ({ open, onClose, onProductCreated }) => {
             cursor: 'pointer',
             backgroundColor: isDragActive ? '#f9f9f9' : 'transparent',
             mt: 2,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
-          <input {...getInputProps()} />
-          <Typography>
+          <input {...getInputProps()} style={{ display: 'none' }} />
+          
+          <Button
+            variant="contained"
+           
+            onClick={(e) => {
+              e.stopPropagation(); 
+              document.querySelector('input[type="file"]').click();
+            }}
+            sx={{backgroundColor:'#f85606'}}
+          >
+            Upload Image
+          </Button>
+          <span style={{textAlign:'center', marginLeft:'3px'}}>or</span>
+          <Typography sx={{ flex: 1 }}>
             {isDragActive
               ? 'Drop the file here...'
               : 'Drag & drop an image or click to select'}
           </Typography>
         </Box>
+
+
         {imagePreview && (
           <img
             src={imagePreview}
@@ -256,9 +287,10 @@ const CreateProduct = ({ open, onClose, onProductCreated }) => {
           sx={{ backgroundColor: '#f85606' }}
           disabled={uploading}
         >
-          {uploading ? 'Uploading...' : 'Create '}
+          {uploading ? 'Uploading...' : selectedProduct ? 'Update' : 'Create'}
         </Button>
       </DialogActions>
+      <ToastContainer />
     </Dialog>
   );
 };

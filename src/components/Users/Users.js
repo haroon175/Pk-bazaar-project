@@ -5,6 +5,7 @@ import StarIcon from '@mui/icons-material/Star';
 
 
 
+
 const reviews = [
     {
         name: "App Store Review",
@@ -60,7 +61,7 @@ function Users() {
                     textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3)',
                 }}
             >
-                See what PkBazaar users are saying
+                <span style={{color:'#f85606'}}>█▓▒▒░░░</span>See What PkBazaar Users Say<span style={{color:'#f85606'}}>░░░▒▒▓█</span>
             </Typography>
               
             <Grid container spacing={3}>
@@ -90,6 +91,7 @@ function Users() {
                     </Grid>
                 ))}
             </Grid>
+            {/* <BackGround/> */}
         </Box>
     );
 }

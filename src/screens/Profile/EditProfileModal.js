@@ -19,7 +19,7 @@ const EditProfileModal = ({ open, handleClose, profile, handleSave }) => {
     const [formValues, setFormValues] = useState(profile);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const NGROK_URL = 'https://thank-rug-effort-stop.trycloudflare.com/api';
+    const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
 
     useEffect(() => {
         setFormValues(profile);

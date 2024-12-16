@@ -70,7 +70,7 @@ const Testimonials = () => {
           textShadow: "2px 2px 4px rgba(0, 0, 0, 0.3)",
         }}
       >
-        What Our Customers Say
+         <span style={{color:'#f85606'}}>█▓▒▒░░░</span>What Our Customers Say<span style={{color:'#f85606'}}>░░░▒▒▓█</span>
       </Typography>
       <Grid container spacing={4} justifyContent="center">
         {testimonials.map((testimonial, index) => (

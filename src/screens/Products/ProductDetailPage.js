@@ -10,7 +10,7 @@ const ProductDetailPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { product } = location.state || {};
-  const NGROK_URL = 'https://thank-rug-effort-stop.trycloudflare.com/api';
+  const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
 
   // States for handling review submission
   const [rating, setRating] = useState(0);
@@ -270,7 +270,7 @@ const ProductDetailPage = () => {
         </Grid>
       </Box>
 
-      <Footer />
+      {/* <Footer /> */}
     </Box>
   );
 };

@@ -31,7 +31,7 @@ import StoreIcon from '@mui/icons-material/Store';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { SaveAltOutlined } from '@mui/icons-material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { Avatar, Badge } from '@mui/material';
+import { Avatar, Badge, CircularProgress } from '@mui/material';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -82,13 +82,20 @@ export default function Navbars() {
   const [shopCreated, setShopCreated] = React.useState(false);
   const [cartCount, setCartCount] = React.useState(0);
   const [shopId, setShopId] = React.useState(null);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchResults, setSearchResults] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
   const [avatar, setAvatar] = React.useState(null);
+  const [role, setRole] = React.useState(null);
 
+  const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
   useEffect(() => {
-    // Fetch avatar from localStorage
+    
     const savedAvatar = localStorage.getItem("profileAvatar");
     setAvatar(savedAvatar);
+    const userRole = localStorage.getItem('userRole'); 
+    setRole(userRole);
   }, []);
 
   React.useEffect(() => {
@@ -101,6 +108,27 @@ export default function Navbars() {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  const fetchCategories = async (query) => {
+    if (!query) {
+      setSearchResults([]);
+      return;
+    }
+
+    setLoading(true);
+    try {
+
+      const response = await fetch(`${NGROK_URL}/v1.0/category/search?name=${query}`);
+      const data = await response.json();
+      setSearchResults(data || []);
+
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -140,6 +168,25 @@ export default function Navbars() {
     }
   };
 
+  const handleSearchChange = (event) => {
+    const query = event.target.value;
+    setSearchQuery(query);
+
+    // Debounce fetching logic
+    const debounceTimeout = setTimeout(() => fetchCategories(query), 500);
+
+    return () => clearTimeout(debounceTimeout);
+  };
+
+  const handleCategoryClick = (result) => {
+    debugger
+    navigate(`/category/${result.id}`, {
+      state: { categoryData: result },
+    });
+    setSearchResults([]);
+    setSearchQuery('');
+  };
+
   const menuId = 'primary-search-account-menu';
   const renderMenu = (
     <Menu
@@ -169,18 +216,12 @@ export default function Navbars() {
           <AccountCircleIcon sx={{ marginRight: '10px', color: '#f85606' }} />
         )}
         Profile
-      </MenuItem>
-      {/* <MenuItem onClick={handleMenuClose}><SellIcon sx={{ marginRight: '5px', color: '#f85606' }} /> Selling</MenuItem>
-      <MenuItem onClick={handleMenuClose}><ShoppingBagIcon sx={{ marginRight: '5px', color: '#f85606' }} /> Buying</MenuItem>
-      <MenuItem onClick={handleMenuClose}><WatchLaterIcon sx={{ marginRight: '5px', color: '#f85606' }} /> Watchlist</MenuItem>
-     
-      <MenuItem onClick={handleMenuClose}><HistoryIcon sx={{ marginRight: '5px', color: '#f85606' }} /> Reviews</MenuItem>
-      <Divider /> */}
-      <MenuItem onClick={handleClickShop}><StorefrontIcon sx={{ marginRight: '5px', color: '#f85606' }} />My Shop</MenuItem>
+      </MenuItem>      
+      <MenuItem onClick={handleClickShop} disabled={role === 'USER'} ><StorefrontIcon sx={{ marginRight: '5px', color: '#f85606' }} />My Shop</MenuItem>
       <MenuItem onClick={handleMenuClose}><HelpIcon sx={{ marginRight: '5px', color: '#f85606' }} /> Help Center</MenuItem>
       <MenuItem onClick={handleMenuClose}><SettingsIcon sx={{ marginRight: '5px', color: '#f85606' }} /> Settings</MenuItem>
       <Divider />
-      <MenuItem onClick={handleClick}>
+      <MenuItem onClick={handleClick} disabled={role === 'USER'} >
         <StoreIcon sx={{ marginRight: '5px', color: '#f85606' }} />  Create Store
       </MenuItem>
       <Divider />
@@ -319,7 +360,80 @@ export default function Navbars() {
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
-            <StyledInputBase placeholder="Search in PkBazaar" inputProps={{ 'aria-label': 'search' }} />
+            <StyledInputBase
+              placeholder="Search categories..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              inputProps={{ 'aria-label': 'search' }}
+            />
+            {searchQuery && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+                  width: '100%',
+                  zIndex: 10,
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                }}
+              >
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', padding: '10px' }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : (
+                  <List>
+                    {searchResults.length > 0 ? (
+                      searchResults.map((result) => (
+                        <ListItem
+                          button
+                          key={result.id}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: 'black',
+                            padding: '10px',
+                            cursor:'pointer',
+                            '&:hover': {
+                              backgroundColor: '#f5f5f5',
+                            },
+                          }}
+                          onClick={() => handleCategoryClick(result)}
+                        >
+                          <img
+                            src={result.image}
+                            alt={result.name}
+                            style={{
+                              width: '50px',
+                              height: '50px',
+                              borderRadius: '8px',
+                              marginRight: '10px',
+                            }}
+                          />
+                          <Box>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'black' }}>
+                              {result.name}
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              {result.description}
+                            </Typography>
+                          </Box>
+                        </ListItem>
+                      ))
+                    ) : (
+                      <ListItem>
+                        <ListItemText sx={{ color: 'black' }} primary="No results found" />
+                      </ListItem>
+                    )}
+                  </List>
+                )}
+              </Box>
+            )}
+
           </Search>
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: { xs: 'none', md: 'flex' }, marginRight: '80px' }}>

@@ -51,11 +51,10 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-const NGROK_URL = 'https://thank-rug-effort-stop.trycloudflare.com/api';
+const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
 
 export default function Navbar() {
   const [hasShadow, setHasShadow] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -81,9 +80,11 @@ export default function Navbar() {
 
     setLoading(true);
     try {
+
       const response = await fetch(`${NGROK_URL}/v1.0/category/search?name=${query}`);
       const data = await response.json();
-      setSearchResults(data.categories || []);
+      setSearchResults(data || []);
+
     } catch (error) {
       console.error('Error fetching categories:', error);
       setSearchResults([]);
@@ -147,49 +148,86 @@ export default function Navbar() {
             <span style={{ color: '#fff', fontStyle: 'italic' }}>Pk</span>
             <span style={{ color: '#fff', fontStyle: 'italic' }}>Bazaar</span>
           </Typography>
+
           <Search>
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
             <StyledInputBase
-              placeholder="Search in PkBazaar"
-              inputProps={{ 'aria-label': 'search' }}
+              placeholder="Search categories..."
               value={searchQuery}
               onChange={handleSearchChange}
+              inputProps={{ 'aria-label': 'search' }}
             />
             {searchQuery && (
               <Box
                 sx={{
-                  position: "absolute",
-                  backgroundColor: "white",
-                  borderRadius: "4px",
-                  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+                  width: '100%',
                   zIndex: 10,
-                  marginTop: 2,
-                  width: "100%",
+                  maxHeight: '300px',
+                  overflowY: 'auto',
                 }}
               >
                 {loading ? (
-                  <CircularProgress
-                    size={24}
-                    sx={{ display: "block", margin: "10px auto" }}
-                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'center', padding: '10px' }}>
+                    <CircularProgress size={24} />
+                  </Box>
                 ) : (
                   <List>
-                    {searchResults.map((result) => (
-                      <ListItem
-                        button
-                        key={result.id}
-                        onClick={() => handleCategoryClick(result.id)}
-                      >
-                        <ListItemText primary={result.name} />
+                    {searchResults.length > 0 ? (
+                      searchResults.map((result) => (
+                        <ListItem
+                          button
+                          key={result.id}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: 'black',
+                            padding: '10px',
+                            '&:hover': {
+                              backgroundColor: '#f5f5f5',
+                            },
+                          }}
+                          onClick={() => handleCategoryClick(result.id)}
+                        >
+                          <img
+                            src={result.image}
+                            alt={result.name}
+                            style={{
+                              width: '50px',
+                              height: '50px',
+                              borderRadius: '8px',
+                              marginRight: '10px',
+                            }}
+                          />
+                          <Box>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'black' }}>
+                              {result.name}
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              {result.description}
+                            </Typography>
+                          </Box>
+                        </ListItem>
+                      ))
+                    ) : (
+                      <ListItem>
+                        <ListItemText sx={{ color: 'black' }} primary="No results found" />
                       </ListItem>
-                    ))}
+                    )}
                   </List>
                 )}
               </Box>
             )}
+
           </Search>
+          
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: { xs: 'none', md: 'flex' }, marginRight: '80px' }}>
             <Typography

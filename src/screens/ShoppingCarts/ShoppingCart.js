@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
-  IconButton, 
-  Box, 
-  Typography, 
-  Grid
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Box,
+  Typography,
+  Grid,
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import axios from "axios";
@@ -18,10 +18,9 @@ import Navbars from "../Navbar/Navbar";
 
 const ShoppingCart = () => {
   const [cartItems, setCartItems] = useState([]);
-  const NGROK_URL = "https://thank-rug-effort-stop.trycloudflare.com/api";
+  const NGROK_URL = "https://organization-gibson-explorer-intended.trycloudflare.com/api";
 
   useEffect(() => {
-    
     fetchCartItems();
   }, []);
 
@@ -48,11 +47,13 @@ const ShoppingCart = () => {
 
   const handleDelete = async (productId) => {
     try {
-      await axios.delete(`${NGROK_URL}/user/cart/${productId}`); 
+      await axios.delete(`${NGROK_URL}/user/cart/${productId}`);
       setCartItems((prevItems) =>
         prevItems.map((cart) => ({
           ...cart,
-          CartProducts: cart.CartProducts.filter((product) => product.product.id !== productId),
+          CartProducts: cart.CartProducts.filter(
+            (product) => product.product.id !== productId
+          ),
         }))
       );
     } catch (error) {
@@ -62,65 +63,77 @@ const ShoppingCart = () => {
 
   const handleUpdate = (productId) => {
     console.log("Update item:", productId);
+    // Implement your update functionality here
   };
 
   return (
     <Box>
       <Navbars />
-      <Grid container spacing={2} sx={{ marginTop: '70px' }}>
-      {/* Left Column: Table */}
-      <Grid item xs={12} md={8}>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead sx={{ backgroundColor: '#f85606' }}>
-              <TableRow>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Image</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Price</TableCell>
-                <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {cartItems.map((cart) =>
-                cart.CartProducts.map((productItem) => {
-                  const product = productItem.product; 
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <img src={product.image} alt={product.name} width={50} height={50} />
-                      </TableCell>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>${product.price.toFixed(2)}</TableCell>
-                      <TableCell align="center">
-                        <IconButton color="primary" onClick={() => handleUpdate(product.id)}>
-                          <Edit />
-                        </IconButton>
-                        <IconButton color="secondary" onClick={() => handleDelete(product.id)}>
-                          <Delete />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Grid>
+      <Grid container spacing={2} sx={{ marginTop: "70px" }}>
+        {/* Left Column: Table */}
+        <Grid item xs={12} md={8}>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead sx={{ backgroundColor: "whitesmoke" }}>
+                <TableRow>
+                  <TableCell sx={{ color: "grey", fontWeight: "bold" }}>Image</TableCell>
+                  <TableCell sx={{ color: "grey", fontWeight: "bold" }}>Name</TableCell>
+                  <TableCell sx={{ color: "grey", fontWeight: "bold" }}>Price</TableCell>
+                  <TableCell sx={{ color: "grey", fontWeight: "bold" }}>Quantity</TableCell>
+                  <TableCell align="center" sx={{ color: "grey", fontWeight: "bold" }}>
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {cartItems.map((cart) =>
+                  cart.CartProducts.map((productItem) => {
+                    const product = productItem.product;
+                    return (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <img src={product.image} alt={product.name} width={50} height={50} />
+                        </TableCell>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>1</TableCell>
+                        <TableCell align="center">
+                          <IconButton color="primary" onClick={() => handleUpdate(product.id)}>
+                            <Edit />
+                          </IconButton>
+                          <IconButton color="secondary" onClick={() => handleDelete(product.id)}>
+                            <Delete />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grid>
 
-      {/* Right Column: Order Summary */}
-      <Grid item xs={12} md={4}>
-        <Paper sx={{ padding: 2 }}>
-          <h3>Order Summary</h3>
-          {/* Example order summary content */}
-          <p><strong>Total Items:</strong> {cartItems.length}</p>
-          <p><strong>Total Price:</strong> ${cartItems.reduce((total, cart) => {
-            return total + cart.CartProducts.reduce((sum, productItem) => sum + productItem.product.price, 0);
-          }, 0).toFixed(2)}</p>
-          {/* Add more order summary details as needed */}
-        </Paper>
+        {/* Right Column: Order Summary */}
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ padding: 2, backgroundColor: "whitesmoke" }}>
+            <h3>Order Summary</h3>
+            <p>
+              <strong>Total Items:</strong> {cartItems.length}
+            </p>
+            <p>
+              <strong>Total Price:</strong> $
+              {cartItems.reduce((total, cart) => {
+                return (
+                  total +
+                  cart.CartProducts.reduce((sum, productItem) => sum + productItem.product.price, 0)
+                );
+              }, 0).toFixed(2)}
+            </p>
+            {/* Add more order summary details as needed */}
+          </Paper>
+        </Grid>
       </Grid>
-    </Grid>
     </Box>
   );
 };

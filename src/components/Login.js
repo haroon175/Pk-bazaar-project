@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, InputAdornment, CircularProgress, Divider, Grid, Card, CardContent } from '@mui/material';
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  InputAdornment,
+  CircularProgress,
+  Card,
+  CardContent,
+  Grid,
+  Divider,
+} from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -9,56 +20,64 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
-import EmailIcon from '@mui/icons-material/Email';
 import loginBg from '../images/login.jpg'
-
 export default function Login() {
-    const [showPassword, setShowPassword] = useState(false);
-    const navigate = useNavigate();
-    const NGROK_URL = 'https://thank-rug-effort-stop.trycloudflare.com/api';
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
 
-    const handleTogglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
-    };
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
-    const formik = useFormik({
-        initialValues: {
-            email: '',
-            password: ''
-        },
-        validationSchema: Yup.object({
-            email: Yup.string()
-                .email('Invalid email address')
-                .required('Email is required'),
-            password: Yup.string()
-                .length(6, 'Password must be exactly 6 characters')
-                .required('Password is required'),
-        }),
-        onSubmit: async (values) => {
-            try {
-                const response = await axios.post(`${NGROK_URL}/v1.0/user/login`, values);
+  const formik = useFormik({
+    initialValues: {
+      email: '',
+      password: '',
+    },
+    validationSchema: Yup.object({
+      email: Yup.string()
+        .email('Invalid email address')
+        .required('Email is required'),
+      password: Yup.string()
+        .length(6, 'Password must be exactly 6 characters')
+        .required('Password is required'),
+    }),
+    onSubmit: async (values) => {
+        try {
+          const response = await axios.post(`${NGROK_URL}/v1.0/user/login`, values);
+      
+          if (response.data.user && response.data.token) {
+            // Store token and user details
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('userRole', response.data.user.user_role);
+      
+            toast.success(response.data.message || 'Login successful!');
+      
+            // Role-based redirection
+            setTimeout(() => {
+              if (response.data.user.user_role === 'ADMIN') {
+                navigate('/eg'); // Admin redirection
+              } else if (response.data.user.user_role === 'VENDOR') {
+                navigate('/eg'); // Vendor redirection
+              } else if (response.data.user.user_role === 'USER') {
+                navigate('/eg'); // User redirection to the same page
+              } else {
+                toast.error('Unauthorized role. Access denied.');
+              }
+            }, 1000);
+          } else {
+            toast.error('Login failed. Please try again.');
+          }
+        } catch (error) {
+          toast.error('Something went wrong. Please try again.');
+        }
+      },
+      
+  });
 
-                if (response.data.user && response.data.token) {
-                    // Store token in local storage
-                    localStorage.setItem('token', response.data.token);
-                    localStorage.setItem('userId', response.data.user.id);
-
-                    toast.success(response.data.message || 'Login successful!');
-                    setTimeout(() => {
-                        navigate('/eg');
-                    }, 1000);
-                } else {
-                    toast.error('Login failed. Please try again.');
-                }
-            } catch (error) {
-                toast.error('Something went wrong. Please try again.');
-                navigate('/');
-            }
-        },
-    });
-
-    return (
-        <Box
+  return (
+    <Box
             // display="flex"
             // alignItems="center"
             // justifyContent="center"
@@ -205,7 +224,7 @@ export default function Login() {
                             sx={{
                                 height: '100%',
                                 width: '100%',
-                                backgroundImage: `url(${loginBg})`, // Replace with your image URL
+                                backgroundImage: `url(${loginBg})`, 
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
                                 borderRadius: '0 8px 8px 0'
@@ -216,5 +235,5 @@ export default function Login() {
                 </Grid>
             </Card>
         </Box>
-    );
+  );
 }

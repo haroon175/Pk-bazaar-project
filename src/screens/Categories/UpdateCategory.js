@@ -18,10 +18,10 @@ import {
 } from "@mui/material";
 import { useDropzone } from "react-dropzone";
 import axios from "axios";
-import CreateCategory from "../../images/category.png";
+// import UpdateCategoryImage from "../../images/update-category.png";
 import { ToastContainer, toast } from "react-toastify";
 
-const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) => {
+const UpdateCategory = ({ open, onClose, categoryData, onUpdate }) => {
   const NGROK_URL = "https://organization-gibson-explorer-intended.trycloudflare.com/api";
   const [formData, setFormData] = useState({
     name: "",
@@ -34,7 +34,8 @@ const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) =
   const [imagePreview, setImagePreview] = useState(null);
   const [parentCategories, setParentCategories] = useState([]);
   const [fetchingParents, setFetchingParents] = useState(false);
-
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   useEffect(() => {
     if (categoryData) {
       setFormData({
@@ -43,7 +44,14 @@ const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) =
         image: categoryData.image || "",
         parentId: categoryData.parentId || "",
       });
-      setImagePreview(categoryData.image || null);
+      setImagePreview(categoryData.image);
+    }
+  }, [categoryData]);
+
+  useEffect(() => {
+    if (categoryData) {
+      setName(categoryData.name);
+      setDescription(categoryData.description);
     }
   }, [categoryData]);
 
@@ -82,7 +90,7 @@ const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) =
         const imageUrl = response.data.imageUrl;
         setFormData((prevFormData) => ({
           ...prevFormData,
-          image: imageUrl,
+          imageUrl,
         }));
         toast.success("Image uploaded successfully!");
       } else {
@@ -126,78 +134,59 @@ const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) =
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-    const token = localStorage.getItem("token");
+    setLoading(true); // Set loading to true to show the progress indicator
+  
+    const token = localStorage.getItem("token"); // Get the token from localStorage for authorization
   
     try {
+      // Set headers with the authorization token
       const headers = {
         Authorization: `Bearer ${token}`,
       };
   
+      // Prepare the payload with the updated category data
       const payload = {
         name: formData.name,
         description: formData.description,
-        image: formData.image || "",
-        parentId: formData.parentId ? parseInt(formData.parentId, 10) : null,
+        image: formData.imageUrl || "", // Use the formData.imageUrl if provided or an empty string
+        parentId: formData.parentId ? parseInt(formData.parentId, 10) : null, // Handle the parentId field, if available
       };
   
-      const isUpdating = !!categoryData;
-      const endpoint = isUpdating
-        ? `${NGROK_URL}/v1.0/category/updateCategory/${categoryData.id}`
-        : `${NGROK_URL}/v1.0/category/create`;
+      // Make the API request to update the category
+      const response = await axios.put(`${NGROK_URL}/v1.0/category/update/${categoryData.id}`, payload, { headers });
   
-      const response = await axios({
-        method: isUpdating ? "PUT" : "POST",
-        url: endpoint,
-        headers,
-        data: payload,
-      });
+      if (response.data.success) {
+        // If the update is successful, get the updated category data from the response
+        const updatedCategory = response.data.updatedCategory;
+        toast.success(`Category "${updatedCategory.name}" updated successfully!`);
   
-      if (response.status === 200 && response.data) {
-        const updatedCategory = response.data;
+        // Call the onUpdate callback with the updated category
+        onUpdate(updatedCategory);
   
-        toast.success(
-          `Category "${updatedCategory.name}" ${isUpdating ? "updated" : "created"} successfully!`,
-          { autoClose: 3000 }
-        );
-  
-        onUpdateSuccess && onUpdateSuccess(updatedCategory);
-  
-        setFormData({ name: "", description: "", image: "", parentId: "" });
-        setImagePreview(null);
+        // Close the modal after updating
         onClose();
       } else {
-        throw new Error(
-          `Failed to ${isUpdating ? "update" : "create"} category.`
-        );
+        // Handle the case when the update fails
+        throw new Error("Failed to update category.");
       }
     } catch (error) {
-      console.error(`Error ${categoryData ? "updating" : "creating"} category:`, error);
-      toast.error(
-        `Failed to ${categoryData ? "update" : "create"} category. Please try again.`
-      );
+      // Log any error and show a toast with an error message
+      console.error("Error updating category:", error);
+      toast.error("Failed to update category. Please try again.");
     } finally {
+      // Set loading to false to hide the progress indicator
       setLoading(false);
     }
-};
-
+  };
   
-
-
-
-
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <Box sx={{ p: 4 }}>
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <Avatar alt="Category Image" src={CreateCategory} sx={{ width: 80, height: 80 }} />
-          <Typography
-            variant="h6"
-            component="h2"
-            sx={{ fontWeight: "bold", fontSize: "1rem", color: "#f85606", textAlign: "center" }}
-          >
-            {categoryData ? "Update Category" : "Create Category"}
+          <Avatar alt="Update Category" src='' sx={{ width: 80, height: 80 }} />
+          <Typography variant="h6" component="h2" sx={{ fontWeight: "bold", fontSize: "1rem", color: "#f85606", textAlign: "center" }}>
+            Update Category
           </Typography>
         </Box>
         <DialogContent>
@@ -218,7 +207,7 @@ const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) =
               multiline
               rows={1}
             />
-            <FormControl fullWidth sx={{ mt: '5px' }}>
+            <FormControl fullWidth>
               <InputLabel id="parent-category-label">Parent Category</InputLabel>
               <Select
                 labelId="parent-category-label"
@@ -238,10 +227,6 @@ const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) =
             <Box
               {...getRootProps()}
               sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
                 border: "2px dashed #f85606",
                 p: 2,
                 textAlign: "center",
@@ -250,21 +235,10 @@ const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) =
               }}
             >
               <input {...getInputProps()} />
-              <Button
-                variant="contained"
-               
-                onClick={() => document.querySelector('input[type="file"]').click()}
-                sx={{backgroundColor:'#f85606'}}
-              >
-                Upload Image
-              </Button>
-              <span style={{textAlign:'center', marginLeft:'3px'}}>or</span>
-              <Typography sx={{ flex: 1, textAlign: "center" }}>
-                {isDragActive ? "Drop the file here..." : "Drag & drop an image click to select"}
+              <Typography>
+                {isDragActive ? "Drop the file here..." : "Drag & drop an image or click to select"}
               </Typography>
-              
             </Box>
-
             {imagePreview && (
               <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                 <img src={imagePreview} alt="Preview" style={{ maxWidth: "100%", maxHeight: "180px" }} />
@@ -273,11 +247,7 @@ const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) =
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button
-            variant="outlined"
-            onClick={onClose}
-            sx={{ color: "#00224D", borderColor: "#00224D" }}
-          >
+          <Button variant="outlined" onClick={onClose} sx={{ color: "#00224D", borderColor: "#00224D" }}>
             Cancel
           </Button>
           <Button
@@ -286,7 +256,7 @@ const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) =
             onClick={handleSubmit}
             disabled={loading || uploading}
           >
-            {loading ? <CircularProgress size={24} /> : categoryData ? "Update" : "Create"}
+            {loading ? <CircularProgress size={24} /> : "Update"}
           </Button>
         </DialogActions>
       </Box>
@@ -295,4 +265,4 @@ const CreateCategoryModal = ({ open, onClose, categoryData, onUpdateSuccess }) =
   );
 };
 
-export default CreateCategoryModal;
+export default UpdateCategory;

@@ -16,7 +16,6 @@ import * as Yup from 'yup';
 import { useFormik } from 'formik';
 import axios from 'axios';
 import Navbar from '../Navbar/Navbar';
-import Footer from '../../components/Footer/Footer';
 import { toast, ToastContainer } from 'react-toastify';
 import Shopimg from '../../images/shop.jpeg';
 const Store = () => {
@@ -26,8 +25,8 @@ const Store = () => {
   const [location, setLocation] = useState(null);
   const [locationName, setLocationName] = useState('Lahore');
 
-  const GOOGLE_API_KEY = 'AIzaSyAc3DqQ3S7Fw69Jka2GRpVJUcU7umi8Yqo'; // Replace with your Google API Key
-  const NGROK_URL = 'https://thank-rug-effort-stop.trycloudflare.com/api';
+  const GOOGLE_API_KEY = 'AIzaSyAc3DqQ3S7Fw69Jka2GRpVJUcU7umi8Yqo'; 
+  const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
 
   useEffect(() => {
     const getLocation = async () => {
@@ -90,7 +89,7 @@ const Store = () => {
       }
     
       const token = localStorage.getItem('token');
-      const ownerId = 1; // Replace with the actual owner ID
+      const ownerId = 1; 
       const { latitude, longitude } = location;
     
       try {
@@ -102,8 +101,7 @@ const Store = () => {
           }
         );
     
-        if (response.data.success) {
-          // Save the shop data to local storage
+        if (response.data.success) {          
           const shopData = {
             ...values,
             ownerId,
@@ -235,8 +233,7 @@ const Store = () => {
           </DialogActions>
         </form>
       </Dialog>
-<ToastContainer/>
-      <Footer />
+<ToastContainer/>      
     </div>
   );
 };

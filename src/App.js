@@ -11,6 +11,7 @@ import Store from './screens/Store/Store';
 import ShoppingCart from './screens/ShoppingCarts/ShoppingCart';
 import MyStore from './screens/Store/MyShop';
 import Profile from './screens/Profile/Profile';
+import SubCategory from './screens/Categories/SubCategory';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); 
@@ -38,13 +39,14 @@ function App() {
           path="/eg"
           element={ <ListCategory /> } 
         />
+         <Route path="/category/:categoryId" element={<SubCategory/>} />
         <Route path="/products/:categoryId" element={<ProductPage />} />
         <Route path="/product-detail" element={<ProductDetailPage />} />
         <Route path='/createStore' element={<Store/>}/>
         <Route path='/shoppingCarts' element={<ShoppingCart/>}/>
         <Route path="/my-store/my-shop" element={<MyStore/>} />
         <Route path='/profile' element={<Profile/>}/>
-        {/* Any other protected routes can go here */}
+        
       </Routes>
     </Router>
   );

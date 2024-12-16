@@ -70,7 +70,7 @@ const CreateShop = ({ open, onClose, onShopCreated }) => {
     shopSpecialist: Yup.string().required('Shop Specialist is required'),
   });
 
-  const NGROK_URL = 'https://bookmarks-programmes-violations-podcast.trycloudflare.com/api';
+  const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
 
   const formik = useFormik({
     initialValues: {

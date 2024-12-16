@@ -42,7 +42,7 @@ const validationSchema = Yup.object({
 export default function SignUp() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-    const NGROK_URL = 'https://thank-rug-effort-stop.trycloudflare.com/api';
+    const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
 
     const formik = useFormik({
         initialValues: {

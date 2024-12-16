@@ -23,7 +23,7 @@ const Profile = () => {
   const [openModal, setOpenModal] = useState(false);
   const [profile, setProfile] = useState({});
   const navigate = useNavigate(); // Initialize useNavigate
-  const NGROK_URL = 'https://thank-rug-effort-stop.trycloudflare.com/api';
+  const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
 
   useEffect(() => {
     const savedAvatar = localStorage.getItem("profileAvatar");
@@ -105,8 +105,7 @@ const Profile = () => {
       <Navbars />
       <Box sx={{ padding: 3, marginTop: "80px" }}>
         <Typography variant="h5" textAlign="center" sx={{ fontWeight: 'bold', textShadow: 3, marginBottom: '20px' }}>
-          Welcome to the <span style={{ color: '#f85606', fontWeight: 'bold' }}>Pk</span>
-          <span style={{ color: '#f85606', fontWeight: 'bold' }}>Bazaar</span> and Manage Your Profile
+           Manage Your Profile
         </Typography>
         <Box
           display="flex"
@@ -229,7 +228,7 @@ const Profile = () => {
           </Paper>
         </Box>
       </Box>
-      <Footer />
+      {/* <Footer /> */}
       <EditProfileModal open={openModal} handleClose={handleModalClose} profile={profile} handleSave={handleProfileSave} />
     </div>
   );

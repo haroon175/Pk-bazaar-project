@@ -13,6 +13,7 @@ import {
   CardContent,
   CardMedia,
   CardActions,
+  Container,
 } from '@mui/material';
 import CreateProduct from '../Products/CreateProduct';
 import CreateCategoryModal from '../Categories/CreateCategoryModal';
@@ -22,8 +23,9 @@ import Footer from '../../components/Footer/Footer';
 import StoreIcon from '@mui/icons-material/Store';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import dayjs from 'dayjs';
+import { useNavigate } from 'react-router-dom';
 
-const NGROK_URL = 'https://thank-rug-effort-stop.trycloudflare.com/api';
+const NGROK_URL = 'https://organization-gibson-explorer-intended.trycloudflare.com/api';
 const GET_SHOP_API_URL = '/v1.0/shop/get_all_shops';
 
 const MyStore = ({ shopId }) => {
@@ -33,7 +35,8 @@ const MyStore = ({ shopId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [products, setProducts] = useState([]);
-
+  const [role, setRole] = useState(null);
+  const navigate = useNavigate()
   const handleOpen = () => {
     setOpenModal(true);
   };
@@ -51,7 +54,6 @@ const MyStore = ({ shopId }) => {
   };
 
   const handleProductCreated = (newProduct) => {
-    // Save new product to localStorage
     const updatedProducts = [...products, newProduct];
     localStorage.setItem('products', JSON.stringify(updatedProducts));
     setProducts(updatedProducts);
@@ -61,6 +63,9 @@ const MyStore = ({ shopId }) => {
   useEffect(() => {
     const fetchShopDetails = async () => {
       const token = localStorage.getItem('token');
+      const userRole = localStorage.getItem('userRole');
+      setRole(userRole);
+
       try {
         setLoading(true);
         const localShopData = localStorage.getItem('shopData');
@@ -78,12 +83,10 @@ const MyStore = ({ shopId }) => {
           setError('Shop not found');
         }
 
-        // Load products from localStorage if available
         const savedProducts = localStorage.getItem('products');
         if (savedProducts) {
           setProducts(JSON.parse(savedProducts));
         }
-
       } catch (err) {
         setError('Failed to fetch shop details');
       } finally {
@@ -93,6 +96,22 @@ const MyStore = ({ shopId }) => {
 
     fetchShopDetails();
   }, [shopId]);
+
+  useEffect(() => {
+    // Retrieve and parse data from local storage
+    const localData = localStorage.getItem('productData');
+    if (localData) {
+      try {
+        const parsedData = JSON.parse(localData);
+        // Filter products with valid data
+        const validProducts = parsedData.filter((item) => item?.product);
+        setProducts(validProducts);
+      } catch (error) {
+        console.error('Error parsing local storage data:', error);
+      }
+    }
+  }, []);
+
 
   if (loading) {
     return (
@@ -122,7 +141,6 @@ const MyStore = ({ shopId }) => {
     <div>
       <Navbars />
       <Box p={2} sx={{ marginTop: '70px' }}>
-
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
           <Paper
             sx={{
@@ -134,7 +152,6 @@ const MyStore = ({ shopId }) => {
             }}
           >
             <Grid container spacing={3}>
-              {/* Shop Avatar and Details */}
               <Grid item xs={12} md={6} container justifyContent="center" alignItems="flex-start">
                 <Box position="relative" display="inline-flex" flexDirection="column" alignItems="center">
                   <Avatar alt="Shop Logo" src={shop.logo} sx={{ width: 120, height: 120, border: '2px solid #f85606', boxShadow: 5 }} />
@@ -144,7 +161,6 @@ const MyStore = ({ shopId }) => {
                 </Box>
               </Grid>
 
-              {/* Shop Details */}
               <Grid item xs={12} md={6}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>Shop Details</Typography>
                 <hr />
@@ -170,11 +186,11 @@ const MyStore = ({ shopId }) => {
                     variant="outlined"
                     sx={{ color: '#f85606', borderColor: '#f85606' }}
                     onClick={handleOpenModal}
+                    disabled={role === 'VENDOR'}
                   >
                     Create Category
                   </Button>
                   <Button variant="contained" sx={{ backgroundColor: '#f85606' }} onClick={handleOpen}>Create Product</Button>
-                  {/* CreateProduct modal */}
                   <CreateCategoryModal open={openCategoryModal} onClose={handleCloseModal} />
                   <CreateProduct open={openModal} onClose={handleClose} onProductCreated={handleProductCreated} />
                 </Box>
@@ -182,30 +198,53 @@ const MyStore = ({ shopId }) => {
             </Grid>
           </Paper>
         </Box>
+        <Container>
+          <Box sx={{ marginTop: 4 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold'}}>Your Created Products</Typography>
+            <hr/>
+            <Grid container spacing={3}>
+              {products.map((item, index) => (
+                <Grid item xs={12} sm={6} md={3} key={index}>
+                  <Card sx={{backgroundColor:'whitesmoke'}}>
+                    <CardMedia
+                      component="img"
+                      height="200"
+                      image={item.product?.image || 'https://via.placeholder.com/200'}
+                      alt={item.product?.name}
+                      onClick={() =>
+                        navigate("/product-detail")
+                      }
+                    />
+                    <CardContent>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{item.product?.name}</Typography>
+                    </CardContent>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between", 
+                        marginTop: 1,
+                        padding:2
+                      }}
+                    >
+                      <Typography variant="body1" sx={{ marginRight: 2, color:'#f85606', fontWeight:'bold' }}>
+                        Rs: {item.product?.price}
+                      </Typography>
+                      <Button variant="contained" sx={{backgroundColor:'black'}}>
+                        Add to Cart
+                      </Button>
+                    </Box>
 
-        {/* Display Created Products */}
-        <Box sx={{ marginTop: 4 }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Products</Typography>
-          <Grid container spacing={3}>
-            {products.map((product, index) => (
-              <Grid item xs={12} sm={6} md={4} key={index}>
-                <Card>
-                  <CardMedia component="img" height="140" image={product.image || '/default-image.jpg'} alt={product.name} />
-                  <CardContent>
-                    <Typography variant="h6" component="div">{product.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">{product.description}</Typography>
-                  </CardContent>
-                  <CardActions>
-                    <Button size="small" color="primary">View</Button>
-                    <Button size="small" color="primary">Add to Cart</Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
+
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+
+          </Box>
+        </Container>
       </Box>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };
